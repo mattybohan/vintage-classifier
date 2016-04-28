@@ -80,7 +80,7 @@ class LasagneToNolearn(object):
         INPUT:
         OUTPUT:
         '''
-        model = pickle.load(open('vgg_cnn_s.pkl'))
+        model = pickle.load(open('self.path_to_pkl'))
         output_layer = self.lasagne_layers['fc7']
         self.mean_image = model['mean image']
         lasagne.layers.set_all_param_values(output_layer, model['values'][:14])

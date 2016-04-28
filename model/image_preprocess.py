@@ -6,8 +6,9 @@ import lasagne
 import pickle
 import numpy as np
 from lasagne.utils import floatX
+from sklearn.externals import joblib
 
-def prep_image(url, MEAN_IMAGE, CLASSES):
+def basic(url):
     ext = url.split('.')[-1]
     im = plt.imread(io.BytesIO(urllib.urlopen(url).read()), ext)
     # Resize so smallest dim = 256, preserving aspect ratio
@@ -28,6 +29,7 @@ def prep_image(url, MEAN_IMAGE, CLASSES):
 
     # Convert to BGR
     im = im[::-1, :, :]
-
-    im = im - MEAN_IMAGE
+  
+    mean_image = joblib.load('/home/ubuntu/vintage-classifier/pkls/mean_image.pkl')
+    im = im - mean_image
     return rawim, floatX(im[np.newaxis])
