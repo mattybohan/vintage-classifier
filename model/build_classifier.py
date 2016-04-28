@@ -26,7 +26,7 @@ class BuildClassifer(object):
 
     def load_nn(self):
         self.nn = joblib.load(self.folder_path + 'nolearn_nn.pkl')
-        #self.mean_image = joblib.load(self.folder_path + 'mean_image.pkl')     
+        self.mean_image = joblib.load(self.folder_path + 'mean_image.pkl')     
 
     def selected_images(self):
         image_list = pickle.load(open('/home/ubuntu/vintage-classifier/pkls/cleaned_data_list.pkl', "rb"))
@@ -35,14 +35,15 @@ class BuildClassifer(object):
     def process_images(self, path_to_folder, timer=False):
         self.features, self.y, self.item_ids = process_folder(path_to_folder,
                 timer=False, threads=16)
-        
-    def chunk_iterable(self, iterable, chunk_size):
-	for index in range(0, len(iterable), chunk_size):
-		yield iterable[index:index+chunk_size]
+        print self.features.shape
 
+    def chunk_features(self, iterable, chunk_size):
+        for index in range(0, len(iterable), chunk_size):
+            yield iterable[index:index+chunk_size]
+    
     def vectorize_images(self):
         X = []
-	for subset in self.chunk_features(self.features, 75):
+        for subset in self.chunk_features(self.features, 75):
             X.append(self.nn.predict_proba(subset))
         self.X = np.concatenate(X, axis=0)
 
