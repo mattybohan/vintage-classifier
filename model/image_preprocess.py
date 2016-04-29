@@ -32,4 +32,5 @@ def basic(url):
   
     mean_image = joblib.load('/home/ubuntu/vintage-classifier/pkls/mean_image.pkl')
     im = im - mean_image
+    #im = np.median(im)
     return rawim, floatX(im[np.newaxis])

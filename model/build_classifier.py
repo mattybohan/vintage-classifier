@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import time
 import cPickle as pickle
 from os import listdir
@@ -16,7 +17,7 @@ from lasagne.layers import LocalResponseNormalization2DLayer as NormLayer
 from nolearn.lasagne import NeuralNet
 from sklearn.cross_validation import train_test_split
 
-class BuildClassifer(object):
+class BuildModel(object):
     """
 
 
@@ -29,13 +30,11 @@ class BuildClassifer(object):
         self.mean_image = joblib.load(self.folder_path + 'mean_image.pkl')     
 
     def selected_images(self):
-        image_list = pickle.load(open('/home/ubuntu/vintage-classifier/pkls/cleaned_data_list.pkl', "rb"))
-        self.selected_items = [item[4:-4] for item in image_list]
+        self.selected_items = pickle.load(open('/home/ubuntu/vintage-classifier/pkls/cleaned_data_list.pkl', "rb"))
  
     def process_images(self, path_to_folder, timer=False):
-        self.features, self.y, self.item_ids = process_folder(path_to_folder,
-                timer=False, threads=16)
-        print self.features.shape
+        self.features, self.labels, self.item_ids = process_folder(path_to_folder,
+                self.selected_items, timer=False, threads=16)
 
     def chunk_features(self, iterable, chunk_size):
         for index in range(0, len(iterable), chunk_size):
@@ -43,17 +42,14 @@ class BuildClassifer(object):
     
     def vectorize_images(self):
         X = []
-        for subset in self.chunk_features(self.features, 75):
+        for subset in self.chunk_features(self.features, 90):
             X.append(self.nn.predict_proba(subset))
         self.X = np.concatenate(X, axis=0)
+        self.y = self.labels
 
     def train_test_split(self):
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
                     self.X, self.y, test_size=0.30)
-	print self.X_train.shape
-        print self.X_test.shape
-	print self.y_train.shape
-	print self.y_test.shape
     
     def fit(self):
         self.model = SVC(C=10.0, kernel='rbf', gamma=0.0001)
@@ -64,26 +60,20 @@ class BuildClassifer(object):
 
     def score(self):
         score = self.model.score(self.X_test, self.y_test)
-        print score
+        print 'Model Accuracy: ', score
+ 
+    def build_dataframe(self):
+        df1 = pd.DataFrame(self.X)
+        df2 = pd.DataFrame(self.y, columns=['Label'])
+        df3 = pd.DataFrame(self.item_ids, columns=['Item_IDs'])
+        frames = [df1, df2, df3]
+        self.df = pd.concat(frames, axis=1)
 
-    def build_dataframe(path, start, end):
+    def pickle_model(self, filename='classifier.pkl'):
+        joblib.dump(self.model, self.folder_path + filename, compress=9)
 
-        df = pd.DataFrame()
-        # Make list of all
-        filenames = [f for f in listdir(path) if isfile(join(path, f))]
-
-        for filename in filenames[start:end]:
-
-            label_prob = process_one(path, filename)
-            df = df.append({'label': label_prob[0], 'feature': label_prob[1]}, ignore_index=True)
-
-        return df
-
-    def pickle_model(self):
-        pass
-
-    def pickle_dataframe(self):
-        pass
+    def pickle_dataframe(self, filename='dataframe.pkl'):
+        joblib.dump(self.df, self.folder_path + filename, compress=9)
 
 def process_one(filename):
     url = '/home/ubuntu/vintage-classifier/images/' + filename
@@ -100,12 +90,13 @@ def process_one(filename):
     item_id = filename[4:-4]
     return (basic(url)[1], label, item_id)
 
-def process_folder(folder_path, timer=False, threads=16):
+def process_folder(folder_path, selected_files, timer=False, threads=16):
     if timer:
         start_time = time.time()
     filenames = [f for f in listdir(folder_path) if isfile(join(folder_path, f))]
+    selected = [f for f in filenames if f in selected_files]
     p = Pool(threads)
-    result = p.map(process_one, filenames)
+    result = p.map(process_one, selected)
     lists = map(list, zip(*result))
     features = np.concatenate(lists[0], axis=0)
     labels = np.array(lists[1])
@@ -118,11 +109,14 @@ def process_folder(folder_path, timer=False, threads=16):
 if __name__ == "__main__":
 
     path = '/home/ubuntu/vintage-classifier/pkls/'
-    classifier = BuildClassifer(path)
+    classifier = BuildModel(path)
     classifier.load_nn()
     classifier.selected_images()
     classifier.process_images('/home/ubuntu/vintage-classifier/images/', timer=True)
     classifier.vectorize_images()
     classifier.train_test_split()
     classifier.fit()
+    classifier.build_dataframe()
+    classifier.pickle_model()
+    classifier.pickle_dataframe()
     print classifier.score()

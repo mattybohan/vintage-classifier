@@ -9,7 +9,7 @@ from lasagne.layers import MaxPool2DLayer as PoolLayer
 from lasagne.layers import InputLayer, DenseLayer, DropoutLayer
 from lasagne.layers.dnn import Conv2DDNNLayer as ConvLayer
 from lasagne.layers import LocalResponseNormalization2DLayer as NormLayer
-from nolearn.lasagne import Neurallasagne_layers
+from nolearn.lasagne import NeuralNet
 
 
 class LasagneToNolearn(object):
@@ -37,9 +37,8 @@ class LasagneToNolearn(object):
         OUTPUT:
         '''
         self.path_to_pkl = path_to_pkl
-        self.lasagne_layers = {}
 
-    def lasagne_layers(self):
+    def lasagne_layers_method(self):
         '''
         INPUT: None
         OUTPUT: Dict
@@ -49,6 +48,7 @@ class LasagneToNolearn(object):
         the output layer returns a vector of shape (1,4096).
         '''
         # Create dictionary of VGG_CNN_S model layers
+        self.lasagne_layers = {}
         self.lasagne_layers['input'] = InputLayer((None, 3, 224, 224))
         self.lasagne_layers['conv1'] = ConvLayer(self.lasagne_layers['input'],
                 num_filters=96, filter_size=7, stride=2, flip_filters=False)
@@ -80,7 +80,7 @@ class LasagneToNolearn(object):
         INPUT:
         OUTPUT:
         '''
-        model = pickle.load(open('self.path_to_pkl'))
+        model = pickle.load(open(self.path_to_pkl))
         output_layer = self.lasagne_layers['fc7']
         self.mean_image = model['mean image']
         lasagne.layers.set_all_param_values(output_layer, model['values'][:14])
@@ -90,14 +90,14 @@ class LasagneToNolearn(object):
         INPUT:
         OUTPUT:
         '''
-        extracted_layers = {}
+        self.extracted_layers = {}
         for layer in self.lasagne_layers:
             if layer[:4] != 'drop' and layer != 'input' and \
                 layer[:4] != 'pool' and layer[:4] != 'norm':
-                clean_layer_data[layer] = [self.lasagne_layers[layer].W.get_value(),
+                self.extracted_layers[layer] = [self.lasagne_layers[layer].W.get_value(),
                 self.lasagne_layers[layer].b.get_value()]
 
-    def nolearn_layers(self):
+    def nolearn_layers_method(self):
         '''
         INPUT:
         OUTPUT:
@@ -105,39 +105,40 @@ class LasagneToNolearn(object):
         self.nolearn_layers = [(InputLayer, {'name': 'input',
                 'shape': (None, 3, 224, 224)}),
         (ConvLayer, {'name': 'conv1', 'num_filters': 96, 'filter_size': (7,7),
-                'stride': 2, 'flip_filters': False, 'W': clean_layer_data['conv1'][0],
-                'b': clean_layer_data['conv1'][1]}),
+                'stride': 2, 'flip_filters': False, 'W': self.extracted_layers['conv1'][0],
+                'b': self.extracted_layers['conv1'][1]}),
         (NormLayer, {'name': 'norm11', 'alpha': .0001}),
-        (PoolLayer, {'name': 'pool1', 'pool_size': 3, 'stride': 3,
+        (PoolLayer, {'name': 'pool1', 'pool_size': (3,3), 'stride': 3,
                 'ignore_border': False}),
         (ConvLayer, {'name': 'conv2', 'num_filters': 256, 'filter_size': (5,5),
-                'flip_filters': False, 'W': clean_layer_data['conv2'][0],
-                'b': clean_layer_data['conv2'][1]}),
-        (PoolLayer, {'name': 'pool2', 'pool_size': 2, 'stride': 2,
+                'flip_filters': False, 'W': self.extracted_layers['conv2'][0],
+                'b': self.extracted_layers['conv2'][1]}),
+        (PoolLayer, {'name': 'pool2', 'pool_size': (2,2), 'stride': 2,
                 'ignore_border': False}),
         (ConvLayer, {'name': 'conv3', 'num_filters': 512, 'filter_size': (3,3),
-                'flip_filters': False, 'pad': 1, 'W':clean_layer_data['conv3'][0],
-                'b':clean_layer_data['conv3'][1]}),
+                'flip_filters': False, 'pad': 1, 'W': self.extracted_layers['conv3'][0],
+                'b': self.extracted_layers['conv3'][1]}),
         (ConvLayer, {'name': 'conv4', 'num_filters': 512, 'filter_size': (3,3),
-                'flip_filters': False, 'pad': 1, 'W': clean_layer_data['conv4'][0],
-                'b': clean_layer_data['conv4'][1]}),
+                'flip_filters': False, 'pad': 1, 'W': self.extracted_layers['conv4'][0],
+                'b': self.extracted_layers['conv4'][1]}),
         (ConvLayer, {'name': 'conv5', 'num_filters': 512, 'filter_size': (3,3),
-                'flip_filters': False, 'pad': 1, 'W':clean_layer_data['conv5'][0],
-                'b': clean_layer_data['conv5'][1]}),
-        (PoolLayer, {'name': 'pool5', 'pool_size': 3, 'stride': 3,
+                'flip_filters': False, 'pad': 1, 'W': self.extracted_layers['conv5'][0],
+                'b': self.extracted_layers['conv5'][1]}),
+        (PoolLayer, {'name': 'pool5', 'pool_size': (3,3), 'stride': 3,
                 'ignore_border': False}),
         (DenseLayer, {'name': 'fc6', 'num_units': 4096,
-                'W': clean_layer_data['fc6'][0], 'b': clean_layer_data['fc6'][1]}),
+                'W': self.extracted_layers['fc6'][0], 'b': self.extracted_layers['fc6'][1]}),
         (DropoutLayer, {'name': 'drop6', 'p': 0.5}),
-        (DenseLayer, {'name': 'fc7', 'num_units': 4096, 'W':clean_layer_data['fc7'][0],
-                'b': clean_layer_data['fc7'][1]})]
+        (DenseLayer, {'name': 'fc7', 'num_units': 4096, 'W': self.extracted_layers['fc7'][0],
+                'b': self.extracted_layers['fc7'][1]})]
 
     def build_nolearn(self):
         '''
         INPUT:
         OUTPUT:
         '''
-        self.nn = Neurallasagne_layers(layers=self.nolearn_layers, update=adam,
+        self.nolearn_layers_method()
+        self.nn = NeuralNet(layers=self.nolearn_layers, update=adam,
                 update_learning_rate=0.0002)
         self.nn.initialize()
 
@@ -146,8 +147,8 @@ class LasagneToNolearn(object):
         INPUT: Local path where pickle files will be stored.
         OUTPUT:
         '''
-        joblib.dump(self.nn, '/nolearn_nn.pkl', compress=9)
-        joblib.dump(self.mean_image, '/mean_image.pkl', compress=9)
+        joblib.dump(self.nn, '/home/ubuntu/vintage-classifier/pkls/nolearn_nn.pkl', compress=9)
+        joblib.dump(self.mean_image, '/home/ubuntu/vintage-classifier/pkls/mean_image.pkl', compress=9)
 
 if __name__ == "__main__":
 
@@ -155,10 +156,10 @@ if __name__ == "__main__":
     sys.setrecursionlimit(10000)
 
     # Instanciate class
-    model = LasagneToNolearn('/home/ubuntu/vintage-classifer/pkls/vgg_cnn_s.pkl')
+    model = LasagneToNolearn('/home/ubuntu/vintage-classifier/pkls/vgg_cnn_s.pkl')
 
     # Create dictionary of CNN layers for Lasagne
-    model.lasagne_layers()
+    model.lasagne_layers_method()
 
     # Build Lasagne CNN
     model.build_lasagne()
@@ -170,4 +171,4 @@ if __name__ == "__main__":
     model.build_nolearn()
 
     # Save Nolearn CNN in Pickle format
-    model.to_pickle('/home/ubuntu/vintage-classifer/pkls/')
+    model.to_pickle('/home/ubuntu/vintage-classifier/pkls/')
