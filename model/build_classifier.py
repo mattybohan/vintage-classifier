@@ -55,8 +55,8 @@ class BuildModel(object):
         self.model = SVC(C=10.0, kernel='rbf', gamma=0.0001)
         self.model.fit(self.X_train, self.y_train)
 
-    def predict(self):
-        pass
+    def predict(self, path):
+        self.model.predict(path)
 
     def score(self):
         score = self.model.score(self.X_test, self.y_test)
