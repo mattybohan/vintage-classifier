@@ -35,6 +35,8 @@ class LasagneToNolearn(object):
         '''
         INPUT: Local path to vgg_cnn_s.pkl
         OUTPUT:
+
+        Points to path of the stored weights and biases.
         '''
         self.path_to_pkl = path_to_pkl
 
@@ -77,8 +79,10 @@ class LasagneToNolearn(object):
 
     def build_lasagne(self):
         '''
-        INPUT:
-        OUTPUT:
+        INPUT: None
+        OUTPUT: None
+
+        Builds the CNN model using Lasagne.
         '''
         model = pickle.load(open(self.path_to_pkl))
         output_layer = self.lasagne_layers['fc7']
@@ -87,8 +91,10 @@ class LasagneToNolearn(object):
 
     def extract_layers(self):
         '''
-        INPUT:
-        OUTPUT:
+        INPUT: None
+        OUTPUT: None
+
+        Extracts relavent layers from Lasagne model for use with Nolearn model.
         '''
         self.extracted_layers = {}
         for layer in self.lasagne_layers:
@@ -99,8 +105,10 @@ class LasagneToNolearn(object):
 
     def nolearn_layers_method(self):
         '''
-        INPUT:
-        OUTPUT:
+        INPUT: None
+        OUTPUT: None
+
+        Creates list of layers for Nolearn model.
         '''
         self.nolearn_layers = [(InputLayer, {'name': 'input',
                 'shape': (None, 3, 224, 224)}),
@@ -134,8 +142,10 @@ class LasagneToNolearn(object):
 
     def build_nolearn(self):
         '''
-        INPUT:
-        OUTPUT:
+        INPUT: None
+        OUTPUT: None
+
+        Builds CNN model using Nolearn.
         '''
         self.nolearn_layers_method()
         self.nn = NeuralNet(layers=self.nolearn_layers, update=adam,
@@ -144,8 +154,10 @@ class LasagneToNolearn(object):
 
     def to_pickle(self, path):
         '''
-        INPUT: Local path where pickle files will be stored.
-        OUTPUT:
+        INPUT: Local path where pickle files will be stored
+        OUTPUT: Two pickle files
+
+        Pickles the Nolearn model as well as the mean image.
         '''
         joblib.dump(self.nn, '/home/ubuntu/vintage-classifier/pkls/nolearn_nn.pkl', compress=9)
         joblib.dump(self.mean_image, '/home/ubuntu/vintage-classifier/pkls/mean_image.pkl', compress=9)
