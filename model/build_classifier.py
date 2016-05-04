@@ -26,7 +26,7 @@ class BuildModel(object):
 
     def __init__(self, folder_path):
         '''
-        INPUT: Directory path
+        INPUT: String
         OUTPUT: None
 
         Points to directory of pickle files containing Nolearn CNN and mean
@@ -56,7 +56,7 @@ class BuildModel(object):
 
     def process_images(self, path_to_folder, timer=False):
         '''
-        INPUT: Path, Boolean
+        INPUT: String, Boolean
         OUTPUT: None
 
         Processes images to extract features (ndarray), labels, and item_ids. Calls
@@ -72,7 +72,9 @@ class BuildModel(object):
         OUTPUT: List of Ndarrays
 
         Takes in list of feature numpy arrays and chunks them to a certain
-        size to modulate the number of features vectorized at one time.
+        size to modulate the number of features vectorized at one time. This
+        was necessary to solve GPU memory limitations of an AWS g2.2xlarge
+        instance.
         '''
         for index in range(0, len(iterable), chunk_size):
             yield iterable[index:index+chunk_size]
@@ -113,7 +115,7 @@ class BuildModel(object):
 
     def predict(self, path):
         '''
-        INPUT: Image file
+        INPUT: String
         OUTPUT: None
 
         Takes in image vector of shape (1,4096) and returns prediction.
@@ -125,17 +127,18 @@ class BuildModel(object):
         INPUT: None
         OUTPUT: None
 
-
+        Scores model based on previously split test data. Must run
+        train_test_split previously.
         '''
         score = self.model.score(self.X_test, self.y_test)
         print 'Model Accuracy: ', score
 
     def build_dataframe(self):
         '''
-        INPUT:
-        OUTPUT:
+        INPUT: None
+        OUTPUT: None
 
-
+        Builds Pandas DataFrame of following columns: Features, Labels, Item_IDs
         '''
         df1 = pd.DataFrame(self.X)
         df2 = pd.DataFrame(self.y, columns=['Label'])
@@ -145,28 +148,30 @@ class BuildModel(object):
 
     def pickle_model(self, filename='classifier.pkl'):
         '''
-        INPUT:
-        OUTPUT:
+        INPUT: String
+        OUTPUT: Pickle
 
-
+        Writes pickle file containing SVM model.
         '''
         joblib.dump(self.model, self.folder_path + filename, compress=9)
 
     def pickle_dataframe(self, filename='dataframe.pkl'):
         '''
-        INPUT:
-        OUTPUT:
+        INPUT: String
+        OUTPUT: Pickle
 
-
+        Writes pickle file containing Pandas DataFrame
         '''
         joblib.dump(self.df, self.folder_path + filename, compress=9)
 
 def process_one(filename):
     '''
-    INPUT:
-    OUTPUT:
+    INPUT: String
+    OUTPUT: Tuple
 
-
+    Given a filename by process_folder, returns a tuple containing ndarray
+    of image data, label, and item_id. Extracts label and item_id information
+    that is encoded in the filename.
     '''
     url = '/home/ubuntu/vintage-classifier/images/' + filename
     if '90s' in filename:
@@ -184,10 +189,12 @@ def process_one(filename):
 
 def process_folder(folder_path, selected_files, timer=False, threads=16):
     '''
-    INPUT:
-    OUTPUT:
+    INPUT: String, List, Boolean, Int
+    OUTPUT: Tuple
 
-
+    Multiprocessing function that goes through folder of image files and
+    returns ordered ndarrays containing the features, labels, and item_ids
+    of all photos.
     '''
     if timer:
         start_time = time.time()
@@ -206,15 +213,35 @@ def process_folder(folder_path, selected_files, timer=False, threads=16):
 
 if __name__ == "__main__":
 
+    # Path of pickle files
     path = '/home/ubuntu/vintage-classifier/pkls/'
+
+    # Instanciate class
     classifier = BuildModel(path)
+
+    # Load Nolearn Convolutional Neural Network
     classifier.load_nn()
+
+    # Import list of selected images
     classifier.selected_images()
+
+    # Process images
     classifier.process_images('/home/ubuntu/vintage-classifier/images/', timer=True)
+
+    # Vectorize images
     classifier.vectorize_images()
+
+    # Split data into training set and testing set
     classifier.train_test_split()
+
+    # Fit data to SVM model
     classifier.fit()
+
+    # Construct DataFrame containing all
     classifier.build_dataframe()
+
+    # Pickle SVM classifier and DataFrame
     classifier.pickle_model()
     classifier.pickle_dataframe()
+
     print classifier.score()

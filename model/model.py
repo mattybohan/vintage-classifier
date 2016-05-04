@@ -7,9 +7,12 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 class DeployModel(object):
 
+    """This class deploys a 
+    """
+
     def __init__(self):
         self.nn = joblib.load('/home/ubuntu/vintage-classifier/pkls/nolearn_nn.pkl')
-        self.classifier = joblib.load('/home/ubuntu/vintage-classifier/pkls/classifier.pkl')        
+        self.classifier = joblib.load('/home/ubuntu/vintage-classifier/pkls/classifier.pkl')
         self.df = joblib.load('/home/ubuntu/vintage-classifier/pkls/dataframe.pkl')
         self.X = self.df.drop(['Label', 'Item_IDs'], axis=1).values
         self.y = self.df['Label']
