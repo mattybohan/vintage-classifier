@@ -110,7 +110,8 @@ class EtsyScraper(object):
         Imports results into Pandas DataFrame.
         '''
         print "Storing scraped data in a Pandas DataFrame..."
-        self.df = self.df.append(pd.DataFrame.from_records(self.results, columns=['item_id', 'shop', 'name', 'label', 'url', 'price'])).reset_index()
+        self.df = self.df.append(pd.DataFrame.from_records(self.results,
+                columns=['item_id', 'shop', 'name', 'label', 'url', 'price'])).reset_index()
         self.df = self.df[['item_id', 'shop', 'name', 'label', 'url', 'price']]
         self.df = self.df.drop_duplicates()
         print "DataFrame creation completed."
