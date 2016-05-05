@@ -3,7 +3,7 @@
 * Classify a vintage dress by decade
 * Find similar items on Etsy
 
-1. Project Overview
+### 1. Project Overview
 
     The initial objective of Dress Code was to see if style–specifically
     vintage–could be featurized using computer vision techniques, allowing for
@@ -21,14 +21,16 @@
 
     A web application was developed that allows users to:
 
-    * Classify an image of a vintage dress by decade
-    * See recommendation of similar dresses found on Etsy
+    1. Classify an image of a vintage dress by decade
+    2. See recommendation of similar dresses found on Etsy
 
-    
-2. Explanation
 
-3. Code
+### 2. Explanation
 
-4. Installation
+### 3. Code
 
-The following
+### 4. Installation
+
+The following modules are required:
+
+1. 
