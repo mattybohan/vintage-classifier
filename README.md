@@ -1,9 +1,9 @@
 # Dress Code
 
-* Classify a vintage dress by decade
-* Find similar items on Etsy
+1.  Classify a vintage dress by decade
+2.  Find similar items on Etsy
 
-### 1. Project Overview
+## 1. Project Overview
 
     The initial objective of Dress Code was to see if style–specifically
     vintage–could be featurized using computer vision techniques, allowing for
@@ -11,7 +11,7 @@
     or 1990s. This is the sort of classification someone knowledgeable of fashion
     might make while picking items ("popping tags") at a thrift shop. A pretrained
     Convolution Neural Network was employed to featurize the images collected
-    from Etsy while traditional models classified the feature vectors.
+    from Etsy with classification of feature vectors by traditional models.
 
     The resulting model was successful in classification, obtaining a maximum
     of 87% accuracy in the binary case and 53% with all five classes. With the
@@ -21,16 +21,19 @@
 
     A web application was developed that allows users to:
 
-    1. Classify an image of a vintage dress by decade
-    2. See recommendation of similar dresses found on Etsy
+    * Classify an image of a vintage dress by decade
+    * See recommendation of similar dresses found on Etsy
+
+    Check it out: http://dress-code.tech
 
 
-### 2. Explanation
 
-### 3. Code
+## 2. Explanation
 
-### 4. Installation
+## 3. Code
+
+## 4. Installation
 
 The following modules are required:
 
-1. 
+1.
