@@ -3,7 +3,7 @@
 1.  Classify a vintage dress by decade
 2.  Find similar items on Etsy
 
-## 1. Project Overview
+## 1. Overview
 
   The initial objective of Dress Code was to see if style–specifically
   vintage–could be featurized using computer vision techniques, allowing for
@@ -11,7 +11,8 @@
   or 1990s. This is the sort of classification someone knowledgeable of fashion
   might make while picking items ("popping tags") at a thrift shop. A pretrained
   Convolution Neural Network was employed to featurize the images collected
-  from Etsy with classification of feature vectors by traditional models.
+  from Etsy with classification of feature vectors by traditional
+  classification models.
 
   The resulting model was successful in classification, obtaining a maximum
   of 87% accuracy in the binary case and 53% with all five classes. With the
@@ -28,23 +29,75 @@
                 (soon: http://dress-code.tech)
 
 
-## 2. Explanation
+## 2. Details
 
 ![alt text](https://github.com/mattybohan/vintage-classifier/blob/master/images/pipeline.jpg "Pipeline")
 
-The
+#### Scraping
+
+Scraping was performed using BeautifulSoup.
+
+#### Image Preprocessing
+
+Image precessing included loading images with scikit-image and manual cropping.
+Additionally, Haar Cascades detection implemented in OpenCV was used for detecting
+facings so they could be removed. Ultimately, the images were resized to
+224x224.
+
+#### Featurize
+
+Image featurizing was achieved using the VGG_CNN_S Convolutional Neural Network,
+(CNN) pretrained on ImageNet (1000 classes). VGG_CNN_S was trained by the Visual
+Geometry Group at Oxford Univeristy. More information on this CNN can be
+found elsewhere:
+
+The Devil is in the Details: An evaluation of recent feature encoding methods
+K. Chatfield, V. Lempitsky, A. Vedaldi and A. Zisserman, In Proc. BMVC, 2011.
+http://www.robots.ox.ac.uk/~vgg/research/deep_eval/
+
+The model was implemented in Nolearn, a Lasagne wrapper. The output layer
+(1000 dimensions) was removed and the output of the last DenseLayer (4096
+dimensional) were used as feature vectors.
+
+T-distributed stochastic neighbor embedding was used to visualize the vectors:
+
+![alt text](https://github.com/mattybohan/vintage-classifier/blob/master/images/cnn_embed_2k.jpg "t-SNE")
+
+#### Classify
+
+Support Vector Machine and Random Forest models were used to classify
+the feature vectors. The following binary accuracies were achieved using SVM:
+
+![alt text](https://github.com/mattybohan/vintage-classifier/blob/master/images/accuracy.png "Accuracy")
+
 
 ## 3. Code
 
 #### Scrape
 
-**Scrape.py** is a custom web scraper that extracts images, labels, and other relavent
+**scrape.py** is a custom web scraper that extracts images, labels, and other relavent
 information from Etsy shops.
 
 #### Model
 
+**build_nn.py** builds a Nolearn CNN from pickled weights and biases formatted
+                for Lasagne. Nolearn was employed instead of Lasagne as it led
+                to a 20 fold speedup. An initial Lasagne model took over 60 minutes
+                to vectorize 5000 images, while the Nolearn model took just 6.
+                Further optimization was achieved using multiprocessing, reducing
+                the total time to 3 minutes.
+
+**build_classifier.py** builds a SVM classifier.
+
+**model.py** is used to load the models (Nolearn, SVM) on initial launch of the
+                web application.
+
+**image_preprocess.py** processes raw images files into numpy arrays.
 
 #### App
+
+**app.py** is a Flask web application.
+
 
 
 ## 4. Installation
