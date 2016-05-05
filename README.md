@@ -51,13 +51,19 @@ Image featurizing was achieved using the VGG_CNN_S Convolutional Neural Network,
 Geometry Group at Oxford Univeristy. More information on this CNN can be
 found elsewhere:
 
-The Devil is in the Details: An evaluation of recent feature encoding methods
-K. Chatfield, V. Lempitsky, A. Vedaldi and A. Zisserman, In Proc. BMVC, 2011.
+    The Devil is in the Details: An evaluation of recent feature encoding methods
+    K. Chatfield, V. Lempitsky, A. Vedaldi and A. Zisserman, In Proc. BMVC, 2011.
 http://www.robots.ox.ac.uk/~vgg/research/deep_eval/
 
 The model was implemented in Nolearn, a Lasagne wrapper. The output layer
 (1000 dimensions) was removed and the output of the last DenseLayer (4096
 dimensional) were used as feature vectors.
+
+Nolearn was employed instead of Lasagne as it led to a 20 fold speedup.
+An initial Lasagne model took over 60 minutes to vectorize 5000 images on an
+AWS EC2 g2.2xlarge instance running in GPU mode with Nvidia CUDA, while
+the Nolearn model took just six minutes. Further optimization was achieved using
+multiprocessing, reducing the total time to three minutes.
 
 T-distributed stochastic neighbor embedding was used to visualize the vectors:
 
@@ -81,11 +87,7 @@ information from Etsy shops.
 #### Model
 
 **build_nn.py** builds a Nolearn CNN from pickled weights and biases formatted
-                for Lasagne. Nolearn was employed instead of Lasagne as it led
-                to a 20 fold speedup. An initial Lasagne model took over 60 minutes
-                to vectorize 5000 images, while the Nolearn model took just 6.
-                Further optimization was achieved using multiprocessing, reducing
-                the total time to 3 minutes.
+                for Lasagne.
 
 **build_classifier.py** builds a SVM classifier.
 
