@@ -10,7 +10,7 @@
   classifying vintage dresses by decade: 1950s, 1960s, 1970s, 1980s,
   or 1990s. This is the sort of classification someone knowledgeable of fashion
   might make while picking items ("popping tags") at a thrift shop. A pretrained
-  Convolution Neural Network was employed to featurize the images collected
+  Convolutional Neural Network was employed to featurize the images collected
   from Etsy with classification of feature vectors by traditional
   classification models.
 
