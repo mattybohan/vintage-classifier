@@ -20,7 +20,8 @@ from sklearn.cross_validation import train_test_split
 
 class BuildModel(object):
 
-    """This class takes in a Nolearn Convolutional Neural Network model stored
+    """
+    This class takes in a Nolearn Convolutional Neural Network model stored
     in a pickle file and builds a SVM classifier and outputs it in pickle format.
     """
 
