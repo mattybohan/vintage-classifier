@@ -25,8 +25,7 @@
   * Classify an image of a vintage dress by decade
   * See recommendation of similar dresses found on Etsy
 
-  Check it out: http://52.202.180.199:8000/
-                (soon: http://dress-code.tech)
+  Check it out: http://dress-code.tech
 
 
 ## 2. Details
